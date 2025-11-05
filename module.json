@@ -2,7 +2,7 @@
   "id": "5e-economy",
   "title": "5E Custom Economy",
   "description": "Cria e gerencia moedas e economias personalizadas para D&D5e.",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "compatibility": {
     "minimum": "12",
     "verified": "13"

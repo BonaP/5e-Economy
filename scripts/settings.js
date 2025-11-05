@@ -24,7 +24,7 @@ export function registerSettings() {
 }
 
 // ===================================================
-// Classe de gerenciamento de moedas
+// Formulário de Gerenciamento das Moedas
 // ===================================================
 class ManageCurrenciesForm extends FormApplication {
   static get defaultOptions() {
@@ -32,7 +32,7 @@ class ManageCurrenciesForm extends FormApplication {
       id: "manage-currencies-form",
       title: "Gerenciar Moedas Personalizadas",
       template: "modules/5e-economy/templates/manage-currencies.html",
-      width: 500,
+      width: 520,
       height: "auto"
     });
   }
@@ -45,57 +45,53 @@ class ManageCurrenciesForm extends FormApplication {
 
   activateListeners(html) {
     super.activateListeners(html);
-    html.find(".add-currency").click(this._onAddCurrency.bind(this));
-    html.find(".remove-currency").click(this._onRemoveCurrency.bind(this));
-  }
 
-  /**
-   * Captura todos os valores preenchidos no formulário antes de adicionar uma nova moeda
-   */
-  _collectFormData() {
-    const currencies = [];
-    this.element.find(".currency-row").each(function () {
-      const name = $(this).find('input[name*="name"]').val();
-      const icon = $(this).find('input[name*="icon"]').val();
-      const value = parseFloat($(this).find('input[name*="value"]').val()) || 0;
-      currencies.push({ name, icon, value });
-    });
-    return currencies;
+    html.find(".new-currency").click(this._onAddCurrency.bind(this));
+    html.find(".remove-currency").click(this._onRemoveCurrency.bind(this));
   }
 
   _onAddCurrency(event) {
     event.preventDefault();
 
-    // 🔹 Captura o que já está no formulário
-    const current = this._collectFormData();
+    // 🔹 Lê o container principal
+    const list = this.element.find(".currency-list");
 
-    // 🔹 Adiciona a nova moeda sem perder as anteriores
-    current.push({
-      name: "Nova Moeda",
-      icon: "",
-      value: 1
-    });
+    // 🔹 Cria uma nova linha dinamicamente (sem re-render)
+    const newRow = $(`
+      <div class="form-group currency-row flexrow">
+        <label>Nome</label>
+        <input type="text" value="Nova Moeda" data-field="name">
+        <label>Ícone</label>
+        <input type="text" placeholder="ex: fa-coins" data-field="icon">
+        <label>Valor (em PO)</label>
+        <input type="number" step="0.01" value="1" data-field="value">
+        <button type="button" class="remove-currency"><i class="fas fa-trash"></i></button>
+      </div>
+    `);
 
-    // 🔹 Salva e re-renderiza o formulário
-    game.settings.set("5e-economy", "extraCurrencies", current);
-    this.render();
+    // 🔹 Adiciona no DOM (sem apagar os existentes)
+    list.append(newRow);
+
+    // 🔹 Reanexa o listener de remover
+    newRow.find(".remove-currency").click(this._onRemoveCurrency.bind(this));
   }
 
   _onRemoveCurrency(event) {
     event.preventDefault();
-    const index = Number(event.currentTarget.dataset.index);
-
-    const current = this._collectFormData();
-    current.splice(index, 1);
-
-    game.settings.set("5e-economy", "extraCurrencies", current);
-    this.render();
+    $(event.currentTarget).closest(".currency-row").remove();
   }
 
   async _updateObject(event, formData) {
     event.preventDefault();
-    const data = foundry.utils.expandObject(formData);
-    const currencies = Object.values(data.currencies || {});
+
+    const currencies = [];
+    this.element.find(".currency-row").each(function () {
+      const name = $(this).find('[data-field="name"]').val() || "Nova Moeda";
+      const icon = $(this).find('[data-field="icon"]').val() || "";
+      const value = parseFloat($(this).find('[data-field="value"]').val()) || 1;
+      currencies.push({ name, icon, value });
+    });
+
     await game.settings.set("5e-economy", "extraCurrencies", currencies);
   }
 }

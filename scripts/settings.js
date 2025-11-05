@@ -53,16 +53,29 @@ class ManageCurrenciesForm extends FormApplication {
     html.find(".remove-currency").click(this._onRemoveCurrency.bind(this));
   }
 
-  _onAddCurrency(event) {
+  // ============================================
+  // Adicionar nova moeda (sem resetar as antigas)
+  // ============================================
+  async _onAddCurrency(event) {
     event.preventDefault();
-    const currencies = game.settings.get("5e-economy", "extraCurrencies") || [];
-    currencies.push({
+
+    // 1️⃣ Captura os valores já preenchidos no formulário
+    const formData = new FormData(this.form);
+    const data = foundry.utils.expandObject(Object.fromEntries(formData.entries()));
+    const existing = Object.values(data.currencies || {});
+
+    // 2️⃣ Adiciona uma nova moeda sem apagar as anteriores
+    existing.push({
       name: "Nova Moeda",
       icon: "",
       value: 1
     });
-    game.settings.set("5e-economy", "extraCurrencies", currencies);
-    this.render();
+
+    // 3️⃣ Salva no game.settings
+    await game.settings.set("5e-economy", "extraCurrencies", existing);
+
+    // 4️⃣ Re-renderiza o formulário mantendo os dados
+    this.render(false);
   }
 
   _onRemoveCurrency(event) {

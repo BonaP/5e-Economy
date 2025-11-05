@@ -3,38 +3,25 @@
 
   <div class="currency-list">
     {{#each currencies as |cur i|}}
-      <div class="currency-row" data-index="{{i}}">
-        <div class="form-group">
-          <label>Nome da Moeda</label>
-          <input type="text" name="currencies.{{i}}.name" value="{{cur.name}}" placeholder="Nome da moeda">
-        </div>
-
-        <div class="form-group">
-          <label>Ícone</label>
-          <input type="text" name="currencies.{{i}}.icon" value="{{cur.icon}}" placeholder="Ex: fa-coins">
-        </div>
-
-        <div class="form-group">
-          <label>Valor (em PO)</label>
-          <input type="number" name="currencies.{{i}}.value" value="{{cur.value}}" step="0.01" placeholder="Valor em PO">
-        </div>
-
-        <button type="button" class="remove-currency" data-index="{{i}}">
-          <i class="fas fa-trash"></i> Remover
-        </button>
-      </div>
+    <div class="form-group currency-row flexrow">
+      <label>Nome</label>
+      <input type="text" value="{{cur.name}}" data-field="name">
+      <label>Ícone</label>
+      <input type="text" value="{{cur.icon}}" data-field="icon" placeholder="ex: fa-coins">
+      <label>Valor (em PO)</label>
+      <input type="number" step="0.01" value="{{cur.value}}" data-field="value">
+      <button type="button" class="remove-currency" data-index="{{i}}">
+        <i class="fas fa-trash"></i>
+      </button>
+    </div>
     {{/each}}
   </div>
 
-  <hr>
-
-  <button type="button" class="add-currency">
-    <i class="fas fa-plus"></i> Adicionar Moeda
+  <button type="button" class="new-currency">
+    <i class="fas fa-plus-circle"></i> Nova Moeda
   </button>
 
-  <footer style="margin-top: 1em;">
-    <button type="submit">
-      <i class="fas fa-save"></i> Salvar Alterações
-    </button>
+  <footer style="margin-top: 10px;">
+    <button type="submit"><i class="fas fa-save"></i> Salvar</button>
   </footer>
 </form>

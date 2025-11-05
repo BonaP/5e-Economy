@@ -1,7 +1,6 @@
 Hooks.once("init", () => {
   console.log("5e-economy | Initializing custom economy module");
 
-  // Registrar menu e configuração
   game.settings.register("5e-economy", "extraCurrencies", {
     name: "Moedas Extras",
     scope: "world",
@@ -39,6 +38,7 @@ class ManageCurrenciesForm extends FormApplication {
   }
 
   getData() {
+    // Recupera moedas salvas no world
     return {
       currencies: game.settings.get("5e-economy", "extraCurrencies") || []
     };
@@ -46,52 +46,56 @@ class ManageCurrenciesForm extends FormApplication {
 
   activateListeners(html) {
     super.activateListeners(html);
-
-    // Corrige a classe do botão ("new-currency" em vez de "add-currency")
     html.find(".new-currency").click(this._onAddCurrency.bind(this));
     html.find(".remove-currency").click(this._onRemoveCurrency.bind(this));
   }
 
+  /** Adiciona nova moeda, mantendo os dados atuais digitados */
   _onAddCurrency(event) {
     event.preventDefault();
 
-    // Em vez de renderizar de novo, adicionamos a linha direto no DOM
-    const $list = $(event.currentTarget).closest("form").find(".currency-list");
-    const $row = $(`
-      <div class="form-group currency-row flexrow">
-        <label>Nome</label>
-        <input type="text" value="Nova Moeda" data-field="name">
-        <label>Ícone</label>
-        <input type="text" value="" data-field="icon" placeholder="ex: fa-coins">
-        <label>Valor (em PO)</label>
-        <input type="number" step="0.01" value="1" data-field="value">
-        <button type="button" class="remove-currency">
-          <i class="fas fa-trash"></i>
-        </button>
-      </div>
-    `);
+    // Captura o formulário atual e os valores digitados antes de adicionar a nova moeda
+    const currencies = this._collectCurrentCurrencies();
 
-    // Anexa a nova linha e reativa o botão de remover nela
-    $list.append($row);
-    $row.find(".remove-currency").click(this._onRemoveCurrency.bind(this));
+    // Adiciona uma nova moeda sem sobrescrever as anteriores
+    currencies.push({ name: "Nova Moeda", icon: "", value: 1 });
+
+    // Atualiza o settings para refletir a lista atualizada (opcional)
+    game.settings.set("5e-economy", "extraCurrencies", currencies);
+
+    // Renderiza novamente o formulário com os dados preservados
+    this.render(true);
   }
 
+  /** Remove uma moeda da lista */
   _onRemoveCurrency(event) {
     event.preventDefault();
-    $(event.currentTarget).closest(".currency-row").remove();
+    const index = Number(event.currentTarget.dataset.index);
+
+    const currencies = this._collectCurrentCurrencies();
+    currencies.splice(index, 1);
+
+    game.settings.set("5e-economy", "extraCurrencies", currencies);
+    this.render(true);
   }
 
+  /** Captura os valores atualmente digitados no formulário */
+  _collectCurrentCurrencies() {
+    const currencies = [];
+    document.querySelectorAll(".currency-row").forEach(row => {
+      const name = row.querySelector('[data-field="name"]')?.value || "Nova Moeda";
+      const icon = row.querySelector('[data-field="icon"]')?.value || "";
+      const value = parseFloat(row.querySelector('[data-field="value"]')?.value) || 1;
+      currencies.push({ name, icon, value });
+    });
+    return currencies;
+  }
+
+  /** Salva tudo ao clicar em “Salvar” */
   async _updateObject(event, formData) {
     event.preventDefault();
 
-    // Coletar todos os dados do formulário (inclusive linhas novas)
-    const currencies = [];
-    $(event.currentTarget).closest("form").find(".currency-row").each(function () {
-      const name = $(this).find('[data-field="name"]').val() || "Nova Moeda";
-      const icon = $(this).find('[data-field="icon"]').val() || "";
-      const value = parseFloat($(this).find('[data-field="value"]').val()) || 1;
-      currencies.push({ name, icon, value });
-    });
+    const currencies = this._collectCurrentCurrencies();
 
     await game.settings.set("5e-economy", "extraCurrencies", currencies);
     ui.notifications.info("Moedas salvas com sucesso!");

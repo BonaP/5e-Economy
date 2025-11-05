@@ -1,7 +1,4 @@
-// ===================================================
-// 5e-economy.js | Script principal do módulo
-// ===================================================
-
+// 5e-economy.js | Script principal
 import { registerSettings } from "./settings.js";
 
 Hooks.once("init", () => {

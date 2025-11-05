@@ -1,12 +1,10 @@
 // ===================================================
 // 5e-economy | settings.js
-// Configurações principais do módulo de economia
 // ===================================================
 
 export function registerSettings() {
   console.log("5e-economy | Registrando configurações");
 
-  // Configuração oculta para armazenar moedas personalizadas
   game.settings.register("5e-economy", "extraCurrencies", {
     name: "Moedas Extras",
     scope: "world",
@@ -15,7 +13,6 @@ export function registerSettings() {
     default: []
   });
 
-  // Menu de gerenciamento de moedas
   game.settings.registerMenu("5e-economy", "manageCurrenciesMenu", {
     name: "Gerenciar Moedas",
     label: "Abrir Gerenciar Moedas",
@@ -27,7 +24,7 @@ export function registerSettings() {
 }
 
 // ===================================================
-// Formulário de Gerenciamento das Moedas
+// Classe de gerenciamento de moedas
 // ===================================================
 class ManageCurrenciesForm extends FormApplication {
   static get defaultOptions() {
@@ -48,42 +45,50 @@ class ManageCurrenciesForm extends FormApplication {
 
   activateListeners(html) {
     super.activateListeners(html);
-
     html.find(".add-currency").click(this._onAddCurrency.bind(this));
     html.find(".remove-currency").click(this._onRemoveCurrency.bind(this));
   }
 
-  // ============================================
-  // Adicionar nova moeda (sem resetar as antigas)
-  // ============================================
-  async _onAddCurrency(event) {
+  /**
+   * Captura todos os valores preenchidos no formulário antes de adicionar uma nova moeda
+   */
+  _collectFormData() {
+    const currencies = [];
+    this.element.find(".currency-row").each(function () {
+      const name = $(this).find('input[name*="name"]').val();
+      const icon = $(this).find('input[name*="icon"]').val();
+      const value = parseFloat($(this).find('input[name*="value"]').val()) || 0;
+      currencies.push({ name, icon, value });
+    });
+    return currencies;
+  }
+
+  _onAddCurrency(event) {
     event.preventDefault();
 
-    // 1️⃣ Captura os valores já preenchidos no formulário
-    const formData = new FormData(this.form);
-    const data = foundry.utils.expandObject(Object.fromEntries(formData.entries()));
-    const existing = Object.values(data.currencies || {});
+    // 🔹 Captura o que já está no formulário
+    const current = this._collectFormData();
 
-    // 2️⃣ Adiciona uma nova moeda sem apagar as anteriores
-    existing.push({
+    // 🔹 Adiciona a nova moeda sem perder as anteriores
+    current.push({
       name: "Nova Moeda",
       icon: "",
       value: 1
     });
 
-    // 3️⃣ Salva no game.settings
-    await game.settings.set("5e-economy", "extraCurrencies", existing);
-
-    // 4️⃣ Re-renderiza o formulário mantendo os dados
-    this.render(false);
+    // 🔹 Salva e re-renderiza o formulário
+    game.settings.set("5e-economy", "extraCurrencies", current);
+    this.render();
   }
 
   _onRemoveCurrency(event) {
     event.preventDefault();
     const index = Number(event.currentTarget.dataset.index);
-    const currencies = game.settings.get("5e-economy", "extraCurrencies") || [];
-    currencies.splice(index, 1);
-    game.settings.set("5e-economy", "extraCurrencies", currencies);
+
+    const current = this._collectFormData();
+    current.splice(index, 1);
+
+    game.settings.set("5e-economy", "extraCurrencies", current);
     this.render();
   }
 

@@ -46,17 +46,20 @@ class ManageCurrenciesForm extends FormApplication {
   activateListeners(html) {
     super.activateListeners(html);
 
-    html.find(".new-currency").click(this._onAddCurrency.bind(this));
+    // Botão "Nova Moeda"
+    html.find(".new-currency").click(ev => this._onAddCurrency(ev, html));
+
+    // Botão de remover moeda
     html.find(".remove-currency").click(this._onRemoveCurrency.bind(this));
   }
 
-  _onAddCurrency(event) {
+  /** Adiciona nova linha de moeda sem recarregar o formulário */
+  _onAddCurrency(event, html) {
     event.preventDefault();
 
-    // 🔹 Lê o container principal
-    const list = this.element.find(".currency-list");
+    const list = html.find(".currency-list");
 
-    // 🔹 Cria uma nova linha dinamicamente (sem re-render)
+    // Cria a nova linha de campos
     const newRow = $(`
       <div class="form-group currency-row flexrow">
         <label>Nome</label>
@@ -69,18 +72,20 @@ class ManageCurrenciesForm extends FormApplication {
       </div>
     `);
 
-    // 🔹 Adiciona no DOM (sem apagar os existentes)
+    // Adiciona dinamicamente ao DOM
     list.append(newRow);
 
-    // 🔹 Reanexa o listener de remover
+    // Reanexa listener de remoção à nova linha
     newRow.find(".remove-currency").click(this._onRemoveCurrency.bind(this));
   }
 
+  /** Remove linha da moeda */
   _onRemoveCurrency(event) {
     event.preventDefault();
     $(event.currentTarget).closest(".currency-row").remove();
   }
 
+  /** Salva os dados no game.settings */
   async _updateObject(event, formData) {
     event.preventDefault();
 

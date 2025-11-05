@@ -1,5 +1,5 @@
 // ===================================================
-// 5e-economy | settings.js
+// 5e-economy | settings.js (versão robusta)
 // ===================================================
 
 export function registerSettings() {
@@ -32,7 +32,7 @@ class ManageCurrenciesForm extends FormApplication {
       id: "manage-currencies-form",
       title: "Gerenciar Moedas Personalizadas",
       template: "modules/5e-economy/templates/manage-currencies.html",
-      width: 520,
+      width: 640,
       height: "auto"
     });
   }
@@ -46,57 +46,95 @@ class ManageCurrenciesForm extends FormApplication {
   activateListeners(html) {
     super.activateListeners(html);
 
-    // Botão "Nova Moeda"
-    html.find(".new-currency").click(ev => this._onAddCurrency(ev, html));
+    // Use delegation sobre this.element (mais confiável)
+    // Observação: this.element é um jQuery wrapper do root element do FormApplication
+    this.element.on("click", ".new-currency", this._onAddCurrency.bind(this));
+    this.element.on("click", ".remove-currency", this._onRemoveCurrency.bind(this));
 
-    // Botão de remover moeda
-    html.find(".remove-currency").click(this._onRemoveCurrency.bind(this));
+    // Opcional: log para debug
+    console.debug("5e-economy | activateListeners attached");
   }
 
-  /** Adiciona nova linha de moeda sem recarregar o formulário */
-  _onAddCurrency(event, html) {
-    event.preventDefault();
+  /** Cria a estrutura DOM de uma linha de moeda */
+  _createCurrencyRow(data = { name: "Nova Moeda", icon: "", value: 1 }) {
+    const escapedName = Handlebars.Utils.escapeExpression(data.name || "Nova Moeda");
+    const escapedIcon = Handlebars.Utils.escapeExpression(data.icon || "");
+    const val = Number.isFinite(Number(data.value)) ? Number(data.value) : 1;
 
-    const list = html.find(".currency-list");
-
-    // Cria a nova linha de campos
-    const newRow = $(`
-      <div class="form-group currency-row flexrow">
-        <label>Nome</label>
-        <input type="text" value="Nova Moeda" data-field="name">
-        <label>Ícone</label>
-        <input type="text" placeholder="ex: fa-coins" data-field="icon">
-        <label>Valor (em PO)</label>
-        <input type="number" step="0.01" value="1" data-field="value">
-        <button type="button" class="remove-currency"><i class="fas fa-trash"></i></button>
+    const $row = $(`
+      <div class="form-group currency-row flexrow" style="align-items:center; gap:8px; margin-bottom:8px;">
+        <label style="width:70px; margin:0;">Nome</label>
+        <input type="text" class="currency-name" value="${escapedName}" data-field="name" style="flex:1;" placeholder="Nome da moeda">
+        <label style="width:60px; margin:0;">Ícone</label>
+        <input type="text" class="currency-icon" value="${escapedIcon}" data-field="icon" style="width:140px;" placeholder="ex: fa-coins ou caminho.png">
+        <label style="width:80px; margin:0;">Valor (PO)</label>
+        <input type="number" class="currency-value" data-field="value" value="${val}" step="0.01" style="width:100px;">
+        <button type="button" class="remove-currency" title="Remover" style="margin-left:6px;">
+          <i class="fas fa-trash"></i>
+        </button>
       </div>
     `);
-
-    // Adiciona dinamicamente ao DOM
-    list.append(newRow);
-
-    // Reanexa listener de remoção à nova linha
-    newRow.find(".remove-currency").click(this._onRemoveCurrency.bind(this));
+    return $row;
   }
 
-  /** Remove linha da moeda */
+  /** Handler: adiciona nova linha dinamicamente sem re-render */
+  _onAddCurrency(event) {
+    event.preventDefault();
+    console.debug("5e-economy | _onAddCurrency clicked");
+
+    // Encontra o container (usamos this.element, que é confiável)
+    const $list = this.element.find(".currency-list");
+    if (!$list.length) {
+      console.warn("5e-economy | currency-list não encontrado no template");
+      return;
+    }
+
+    // Cria a linha e anexa
+    const $row = this._createCurrencyRow({ name: "Nova Moeda", icon: "", value: 1 });
+    $list.append($row);
+
+    // Foca no input do nome para permitir edição imediata
+    $row.find('.currency-name').focus();
+
+    // Não chamamos this.render() aqui — salvamos somente quando o usuário clicar em Salvar
+  }
+
+  /** Handler: remove linha */
   _onRemoveCurrency(event) {
     event.preventDefault();
-    $(event.currentTarget).closest(".currency-row").remove();
+    const $btn = $(event.currentTarget);
+    const $row = $btn.closest(".currency-row");
+    if ($row.length) {
+      $row.remove();
+    }
   }
 
-  /** Salva os dados no game.settings */
+  /** Coleta todos os valores visíveis no formulário (incluindo linhas adicionadas dinamicamente) */
+  _collectFormValues() {
+    const values = [];
+    this.element.find(".currency-row").each(function () {
+      const $row = $(this);
+      const name = $row.find('[data-field="name"]').val() ?? "Nova Moeda";
+      const icon = $row.find('[data-field="icon"]').val() ?? "";
+      const valueRaw = $row.find('[data-field="value"]').val();
+      const value = (valueRaw === "" || valueRaw === undefined) ? 1 : parseFloat(valueRaw);
+      values.push({ name, icon, value });
+    });
+    return values;
+  }
+
+  /** Salva no game.settings quando o formulário é submetido */
   async _updateObject(event, formData) {
     event.preventDefault();
 
-    const currencies = [];
-    this.element.find(".currency-row").each(function () {
-      const name = $(this).find('[data-field="name"]').val() || "Nova Moeda";
-      const icon = $(this).find('[data-field="icon"]').val() || "";
-      const value = parseFloat($(this).find('[data-field="value"]').val()) || 1;
-      currencies.push({ name, icon, value });
-    });
+    // Em vez de confiar somente no formData (que pode não conter inputs dinâmicos),
+    // lemos o DOM (coleta robusta)
+    const currencies = this._collectFormValues();
+    console.debug("5e-economy | Salvando moedas:", currencies);
 
     await game.settings.set("5e-economy", "extraCurrencies", currencies);
+
+    // opcional: notificação
+    ui.notifications.info("Moedas salvas.");
   }
 }

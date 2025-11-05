@@ -1,0 +1,20 @@
+<form>
+  <h2>Gerenciador de Moedas</h2>
+  <div class="currency-list">
+    {{#each currencies as |cur i|}}
+      <div class="form-group">
+        <label>Nome</label>
+        <input type="text" name="name-{{i}}" value="{{cur.name}}">
+        <label>Abrev.</label>
+        <input type="text" name="abbr-{{i}}" value="{{cur.abbr}}">
+        <label>Valor (em GP)</label>
+        <input type="number" name="value-{{i}}" value="{{cur.value}}" step="0.01">
+        <button type="button" class="remove-currency" data-index="{{i}}">Remover</button>
+      </div>
+    {{/each}}
+  </div>
+  <button type="button" class="add-currency">+ Adicionar Moeda</button>
+  <footer>
+    <button type="submit"><i class="fas fa-save"></i> Salvar</button>
+  </footer>
+</form>

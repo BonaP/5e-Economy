@@ -1,0 +1,33 @@
+{
+  "id": "5e-economy",
+  "title": "5E Custom Economy",
+  "description": "Cria e gerencia moedas e economias personalizadas para D&D5e.",
+  "version": "1.0.0",
+  "compatibility": {
+    "minimum": "12",
+    "verified": "13"
+  },
+  "authors": [
+    {
+      "name": "Pedro Bonadia & ChatGPT",
+      "url": "https://foundryvtt.com"
+    }
+  ],
+  "esmodules": ["scripts/main.js"],
+  "scripts": [],
+  "languages": [
+    {
+      "lang": "en",
+      "name": "English",
+      "path": "lang/en.json"
+    }
+  ],
+  "url": "",
+  "manifest": "",
+  "download": "",
+  "license": "MIT",
+  "minimumCoreVersion": "12",
+  "compatibleCoreVersion": "13",
+  "system": ["dnd5e"],
+  "packs": []
+}

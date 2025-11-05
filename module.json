@@ -27,7 +27,7 @@
     }
   ],
   "url": "https://github.com/BonaP/5e-Economy",
-  "manifest": "https://github.com/BonaP/5e-Economy/blob/main/module.json",
+  "manifest": "https://raw.githubusercontent.com/BonaP/5e-Economy/refs/heads/main/module.json",
   "download": "https://github.com/BonaP/5e-Economy/archive/refs/heads/main.zip",
   "license": "MIT",
   "minimumCoreVersion": "12",

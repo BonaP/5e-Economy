@@ -1,7 +1,5 @@
 // scripts/5e-economy.js
-import { ManageCurrenciesForm } from "./settings.js"; 
-// Você deve remover a declaração da classe ManageCurrenciesForm 
-// que estava no final deste arquivo, pois ela está em settings.js
+import { ManageCurrenciesForm } from "./settings.js"; 
 
 Hooks.once("init", () => {
   console.log("5e-economy | Initializing custom economy module");

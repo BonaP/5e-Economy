@@ -14,7 +14,7 @@
     }
   ],
   "esmodules": [
-         "scripts/5e-economy.js"
+         "scripts/5e-economy.js",
          "scripts/settings.js"
   ],
 "scripts": [],

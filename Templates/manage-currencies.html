@@ -1,28 +1,36 @@
 <form>
   <h2>Gerenciador de Moedas</h2>
+
   <div class="currency-list">
     {{#each currencies as |cur i|}}
-      <div class="currency-row flexrow" data-index="{{i}}">
-        <input type="text" class="currency-name" data-field="name" value="{{cur.name}}" placeholder="Nome da Moeda">
+    <div class="form-group currency-row flexrow align-center">
+      <!-- Nome da moeda -->
+      <input type="text" class="currency-name" value="{{cur.name}}" data-field="name" placeholder="Nome da Moeda">
 
-        <div class="image-input flexrow">
-          <img class="currency-preview" src="{{cur.icon}}" width="32" height="32">
-          <input type="text" data-field="icon" value="{{cur.icon}}" placeholder="Caminho da imagem">
-          <button type="button" class="file-picker" data-type="image" data-field="icon">
-            <i class="fas fa-folder-open"></i>
-          </button>
-        </div>
+      <!-- Sigla -->
+      <input type="text" class="currency-abbr" value="{{cur.abbr}}" data-field="abbr" placeholder="Sigla">
 
-        <button type="button" class="remove-currency" data-index="{{i}}">
-          <i class="fas fa-trash"></i>
-        </button>
-      </div>
+      <!-- Ícone da moeda -->
+      <input type="text" class="currency-icon" value="{{cur.icon}}" data-field="icon" placeholder="Caminho do ícone (ex: icons/svg/coin.svg)">
+      <button type="button" class="browse-icon" data-index="{{i}}" title="Selecionar Ícone">
+        <i class="fas fa-folder-open"></i>
+      </button>
+
+      <!-- Botão de remover -->
+      <button type="button" class="remove-currency" data-index="{{i}}" title="Remover Moeda">
+        <i class="fas fa-trash"></i>
+      </button>
+    </div>
     {{/each}}
   </div>
 
-  <button type="button" class="new-currency">+ Nova Moeda</button>
+  <!-- Botão para adicionar nova moeda -->
+  <button type="button" class="new-currency">
+    <i class="fas fa-plus-circle"></i> Nova Moeda
+  </button>
 
-  <footer>
+  <!-- Rodapé -->
+  <footer style="margin-top: 10px;">
     <button type="submit"><i class="fas fa-save"></i> Salvar</button>
   </footer>
 </form>

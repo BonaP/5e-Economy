@@ -18,7 +18,7 @@
          "scripts/settings.js"
   ],
 "scripts": [],
-  "styles": [],
+  "styles": [ "styles/manage-currencies.css" ],
   "languages": [
     {
       "lang": "en",

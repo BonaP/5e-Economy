@@ -5,7 +5,7 @@
 export class ManageCurrenciesForm extends FormApplication {
   constructor(...args) {
     super(...args);
-    // Inicializa com a configuração atual, garantindo que o estado interno do formulário reflita a configuração
+    // Inicializa o estado interno com a configuração
     this.currencies = foundry.utils.duplicate(game.settings.get("5e-economy", "currencies")) || [];
   }
 
@@ -21,7 +21,7 @@ export class ManageCurrenciesForm extends FormApplication {
   }
 
   getData() {
-    // Usa o estado interno atualizado (this.currencies) para renderizar
+    // Retorna o estado interno, que será atualizado antes de cada render
     return { currencies: this.currencies };
   }
 
@@ -31,22 +31,20 @@ export class ManageCurrenciesForm extends FormApplication {
     // 🪙 Adicionar nova moeda
     html.find(".new-currency").on("click", async (ev) => {
       ev.preventDefault();
+      
+      // 1. **COLETA E ATUALIZAÇÃO**: Coleta dados do DOM e atualiza o estado interno (this.currencies)
+      // Usamos 'this.element' (a referência jQuery do formulário) para garantir o escopo correto.
+      this.currencies = this._collectCurrentValues(this.element);
 
-      // 1. Captura o estado atual do formulário (valores digitados) e ATUALIZA this.currencies
-      this._collectCurrentValues(html);
-
-      // 2. Adiciona a nova moeda ao array interno atualizado
+      // 2. Adiciona nova moeda ao estado interno já atualizado
       this.currencies.push({
         name: "Nova Moeda",
         icon: "fa-coins",
         value: 1,
       });
 
-      // 3. Força re-render completo (garante atualização imediata e preservação dos dados)
+      // 3. Força re-render completo (usará a lista atualizada com o novo item e os textos preservados)
       this.render(true);
-
-      // A chamada ao settings.set foi removida daqui, pois ela só deve acontecer ao salvar 
-      // ou após o render, para evitar salvar um estado inconsistente.
     });
 
     // 🗑️ Remover moeda
@@ -54,57 +52,48 @@ export class ManageCurrenciesForm extends FormApplication {
       ev.preventDefault();
       const index = Number(ev.currentTarget.dataset.index);
 
-      // Garante que os valores atuais são capturados antes da remoção
-      this._collectCurrentValues(html);
-      
+      // 1. Coleta dados do DOM e atualiza o estado interno
+      this.currencies = this._collectCurrentValues(this.element);
+      
+      // 2. Remove do estado interno
       this.currencies.splice(index, 1);
       
-      // O render fará o update, e o _updateObject cuidará do save final
+      // 3. Força re-render
       this.render(true);
     });
     
-    // 📝 Atualizar conforme digitação: Apenas para manter o estado interno (this.currencies) 
-    // enquanto o usuário digita.
-    html.find("input").on("input change", (ev) => {
-      // Encontra o índice dentro da lista de moedas
-      const rows = html.find(".currency-list .currency-row");
-      const row = ev.currentTarget.closest(".currency-row");
-      const index = Array.from(rows).indexOf(row);
-      
-      const field = ev.currentTarget.dataset.field;
-      const value = ev.currentTarget.type === "number" ? parseFloat(ev.currentTarget.value) : ev.currentTarget.value;
-      
-      if (this.currencies[index] && field) {
-         this.currencies[index][field] = value;
-      }
-    });
+    // **IMPORTANTE**: O listener 'input change' foi removido para simplificar a lógica
+    // e forçar a coleta de dados apenas no momento necessário (clique em "Nova Moeda" ou "Remover").
   }
 
-  /** * Captura valores atuais digitados do DOM e ATUALIZA o estado interno (this.currencies). 
-   * Esta é a chave para a persistência do texto.
+  /** * Captura valores atuais digitados do DOM e retorna o array atualizado.
+   * Recebe o elemento jQuery ou DOM para garantir o escopo.
    */
-  _collectCurrentValues(html) {
-    const rows = html[0].querySelectorAll(".currency-row");
+  _collectCurrentValues(element) {
+    // Converte a referência do elemento para DOM se for jQuery (this.element é jQuery)
+    const domElement = element instanceof jQuery ? element[0] : element;
+    
+    const rows = domElement.querySelectorAll(".currency-row");
     const updated = [];
 
     rows.forEach((row) => {
       const name = row.querySelector('[data-field="name"]')?.value || "Nova Moeda";
       const icon = row.querySelector('[data-field="icon"]')?.value || "fa-coins";
-      // Não esqueça do fallback para 1.0 se for NaN
+      // Usa o Foundry's casting para garantir o tipo correto
       const value = parseFloat(row.querySelector('[data-field="value"]')?.value) || 1.0; 
       updated.push({ name, icon, value });
     });
+    
+    // Retorna a nova lista de moedas
+    return updated;
+  }
 
-    // ATUALIZA O ESTADO INTERNO
-    this.currencies = updated;
-  }
-  
-  /** Método obrigatório para FormApplication (salva o objeto) */
-  async _updateObject(event, formData) {
-      // Garante que o último estado digitado é salvo (embora o listener 'input change' já ajude)
-      this._collectCurrentValues(this.element); 
+  /** Método obrigatório que é chamado ao submeter (clicar em Salvar) */
+  async _updateObject(event, formData) {
+      // Garante que o estado interno 'this.currencies' reflete o último digitado no DOM antes de salvar
+      this.currencies = this._collectCurrentValues(this.element);
       
-      // Salva no game settings
-      await game.settings.set("5e-economy", "currencies", this.currencies);
-  }
+      // Salva a lista final
+      await game.settings.set("5e-economy", "currencies", this.currencies);
+  }
 }

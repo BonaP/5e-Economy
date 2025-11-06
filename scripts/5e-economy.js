@@ -79,17 +79,19 @@ class ManageCurrenciesForm extends FormApplication {
     this.render(true);
   }
 
-  /** Captura os valores atualmente digitados no formulário */
-  _collectCurrentCurrencies() {
-    const currencies = [];
-    document.querySelectorAll(".currency-row").forEach(row => {
-      const name = row.querySelector('[data-field="name"]')?.value || "Nova Moeda";
-      const icon = row.querySelector('[data-field="icon"]')?.value || "";
-      const value = parseFloat(row.querySelector('[data-field="value"]')?.value) || 1;
-      currencies.push({ name, icon, value });
-    });
-    return currencies;
-  }
+/** Captura os valores atualmente digitados no formulário */
+  _collectCurrentCurrencies() {
+    const currencies = [];
+    
+    // **CORREÇÃO AQUI**: Usa this.element (o DOM da janela) em vez de document
+    this.element[0].querySelectorAll(".currency-row").forEach(row => { 
+      const name = row.querySelector('[data-field="name"]')?.value || "Nova Moeda";
+      const icon = row.querySelector('[data-field="icon"]')?.value || "";
+      const value = parseFloat(row.querySelector('[data-field="value"]')?.value) || 1;
+      currencies.push({ name, icon, value });
+    });
+    return currencies;
+  }
 
   /** Salva tudo ao clicar em “Salvar” */
   async _updateObject(event, formData) {

@@ -5,7 +5,7 @@
 export class ManageCurrenciesForm extends FormApplication {
   constructor(...args) {
     super(...args);
-    // O 'currencies' agora terá apenas 'name' e 'icon' (e talvez um 'value' se estiver salvo, mas o HTML não o renderiza)
+    // Usa o setting 'currencies' (provavelmente o setting padrão, não 'extraCurrencies')
     this.currencies = foundry.utils.duplicate(game.settings.get("5e-economy", "currencies")) || [];
   }
 
@@ -30,15 +30,17 @@ export class ManageCurrenciesForm extends FormApplication {
     // 🪙 Adicionar nova moeda
     html.find(".new-currency").on("click", async (ev) => {
       ev.preventDefault();
-      
+      
+      // 1. Coleta o estado atual do DOM para preservar o texto digitado
       this.currencies = this._collectCurrentValues(this.element);
 
-      // ALTERADO: Remoção do campo 'value'
+      // 2. Adiciona a nova moeda
       this.currencies.push({
         name: "Nova Moeda",
-        icon: "fa-coins", // Valor padrão para o ícone
+        icon: "fa-coins",
       });
 
+      // 3. Re-renderiza para mostrar o novo item
       this.render(true);
     });
 
@@ -48,42 +50,39 @@ export class ManageCurrenciesForm extends FormApplication {
       const index = Number(ev.currentTarget.dataset.index);
 
       this.currencies = this._collectCurrentValues(this.element);
-      
+      
       this.currencies.splice(index, 1);
-      
+      
       this.render(true);
     });
-    
-    // O listener de input change foi removido na última correção, o que é bom.
   }
 
   /** * Captura valores atuais digitados do DOM e retorna o array atualizado. */
   _collectCurrentValues(element) {
     const domElement = element instanceof jQuery ? element[0] : element;
-    
+    
     const rows = domElement.querySelectorAll(".currency-row");
     const updated = [];
 
     rows.forEach((row) => {
       const name = row.querySelector('[data-field="name"]')?.value || "Nova Moeda";
-      const icon = row.querySelector('[data-field="icon"]')?.value || "fa-coins"; // Mantém o ícone
-      
-      // REMOVIDO: Coleta do campo 'value'
-      
-      updated.push({ name, icon }); // Objeto agora tem apenas 'name' e 'icon'
+      const icon = row.querySelector('[data-field="icon"]')?.value || "fa-coins";
+      
+      updated.push({ name, icon }); 
     });
-    
-    return updated;
-  }
+    
+    return updated;
+  }
 
   /** Método obrigatório que é chamado ao submeter (clicar em Salvar) */
   async _updateObject(event, formData) {
-      this.currencies = this._collectCurrentValues(this.element);
-      
-      // Remove a propriedade 'value' de todos os objetos antes de salvar, 
-      // caso o game.settings.get("5e-economy", "currencies") ainda contenha dados antigos.
-      const cleanedCurrencies = this.currencies.map(({ name, icon }) => ({ name, icon }));
-      
+      // Garante a coleta final do DOM antes de salvar
+      this.currencies = this._collectCurrentValues(this.element);
+      
+      // Garante que apenas 'name' e 'icon' sejam salvos
+      const cleanedCurrencies = this.currencies.map(({ name, icon }) => ({ name, icon }));
+      
+      // Usa o setting 'currencies' (como no construtor)
       await game.settings.set("5e-economy", "currencies", cleanedCurrencies);
   }
 }

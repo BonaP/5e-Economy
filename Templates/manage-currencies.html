@@ -1,15 +1,28 @@
-<div class="currency-row" data-index="{{@index}}">
-  <input type="text" class="currency-name" data-field="name" value="{{name}}" placeholder="Nome da Moeda">
+<form>
+  <h2>Gerenciador de Moedas</h2>
+  <div class="currency-list">
+    {{#each currencies as |cur i|}}
+      <div class="currency-row flexrow" data-index="{{i}}">
+        <input type="text" class="currency-name" data-field="name" value="{{cur.name}}" placeholder="Nome da Moeda">
 
-  <div class="image-input flexrow">
-    <img class="currency-preview" src="{{icon}}" width="32" height="32">
-    <input type="text" data-field="icon" value="{{icon}}" placeholder="Caminho da imagem">
-    <button class="file-picker" data-type="image" data-field="icon">
-      <i class="fas fa-folder-open"></i>
-    </button>
+        <div class="image-input flexrow">
+          <img class="currency-preview" src="{{cur.icon}}" width="32" height="32">
+          <input type="text" data-field="icon" value="{{cur.icon}}" placeholder="Caminho da imagem">
+          <button type="button" class="file-picker" data-type="image" data-field="icon">
+            <i class="fas fa-folder-open"></i>
+          </button>
+        </div>
+
+        <button type="button" class="remove-currency" data-index="{{i}}">
+          <i class="fas fa-trash"></i>
+        </button>
+      </div>
+    {{/each}}
   </div>
 
-  <button type="button" class="remove-currency" data-index="{{@index}}">
-    <i class="fas fa-trash"></i>
-  </button>
-</div>
+  <button type="button" class="new-currency">+ Nova Moeda</button>
+
+  <footer>
+    <button type="submit"><i class="fas fa-save"></i> Salvar</button>
+  </footer>
+</form>

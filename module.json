@@ -13,7 +13,10 @@
       "url": "https://foundryvtt.com"
     }
   ],
-  "esmodules": ["scripts/5e-economy.js"],
+  "esmodules": [
+         "scripts/5e-economy.js"
+         "scripts/settings.js"
+  ],
 "scripts": [],
   "styles": [],
   "languages": [

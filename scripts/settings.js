@@ -28,36 +28,37 @@ export class ManageCurrenciesForm extends FormApplication {
   activateListeners(html) {
     super.activateListeners(html);
 
-    // Botão "Nova Moeda"
+    // 🪙 Adicionar nova moeda
     html.find(".new-currency").on("click", (ev) => {
       ev.preventDefault();
 
-      // 🔹 Captura os valores atuais do formulário antes de adicionar a nova moeda
-      this._collectCurrentValues(html);
+      // 🔹 Coleta os valores do DOM atual antes de adicionar
+      this._collectCurrentValues(this.element);
 
-      // 🔹 Adiciona uma nova moeda à lista local
+      // 🔹 Adiciona uma nova moeda
       this.currencies.push({
         name: "Nova Moeda",
         icon: "fa-coins",
         value: 1,
       });
 
-      // 🔹 Renderiza novamente preservando o estado
+      // 🔹 Renderiza novamente mantendo os valores
       this.render(false);
     });
 
-    // Botão "Remover"
+    // 🗑️ Remover moeda
     html.find(".remove-currency").on("click", (ev) => {
       ev.preventDefault();
       const index = Number(ev.currentTarget.dataset.index);
 
-      this._collectCurrentValues(html);
+      // Captura o estado atual antes de remover
+      this._collectCurrentValues(this.element);
       this.currencies.splice(index, 1);
       this.render(false);
     });
 
-    // Atualiza o array local conforme o usuário digita
-    html.find("input").on("change", (ev) => {
+    // 📝 Atualizar valores conforme o usuário digita
+    html.find("input").on("input change", (ev) => {
       const row = ev.currentTarget.closest(".currency-row, .form-group");
       const index = Array.from(row.parentElement.children).indexOf(row);
       const field = ev.currentTarget.dataset.field;
@@ -66,12 +67,12 @@ export class ManageCurrenciesForm extends FormApplication {
     });
   }
 
-  /** 🔹 Função que coleta os valores atuais do formulário */
-  _collectCurrentValues(html) {
-    const rows = html.find(".currency-row, .form-group");
+  /** 🔹 Coleta os valores atuais do DOM renderizado */
+  _collectCurrentValues(rootElement) {
+    const rows = rootElement[0].querySelectorAll(".currency-row, .form-group");
     const updated = [];
 
-    rows.each((i, row) => {
+    rows.forEach((row) => {
       const name = row.querySelector('[data-field="name"]')?.value || "Nova Moeda";
       const icon = row.querySelector('[data-field="icon"]')?.value || "fa-coins";
       const value = parseFloat(row.querySelector('[data-field="value"]')?.value) || 1;
@@ -82,7 +83,7 @@ export class ManageCurrenciesForm extends FormApplication {
   }
 
   async _updateObject(_event, _formData) {
-    // Antes de salvar, garante que os últimos valores foram coletados
+    // Garante que o último estado seja coletado antes de salvar
     this._collectCurrentValues(this.element);
     await game.settings.set("5e-economy", "currencies", this.currencies);
     ui.notifications.info("Moedas salvas com sucesso!");
@@ -90,7 +91,7 @@ export class ManageCurrenciesForm extends FormApplication {
 }
 
 // ===================================================
-// Função que registra o menu e a configuração global
+// Registro das configurações
 // ===================================================
 
 export function registerSettings() {

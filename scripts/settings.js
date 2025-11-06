@@ -28,26 +28,35 @@ export class ManageCurrenciesForm extends FormApplication {
   activateListeners(html) {
     super.activateListeners(html);
 
-    // Adicionar nova moeda
+    // Botão "Nova Moeda"
     html.find(".new-currency").on("click", (ev) => {
       ev.preventDefault();
+
+      // 🔹 Captura os valores atuais do formulário antes de adicionar a nova moeda
+      this._collectCurrentValues(html);
+
+      // 🔹 Adiciona uma nova moeda à lista local
       this.currencies.push({
         name: "Nova Moeda",
         icon: "fa-coins",
         value: 1,
       });
+
+      // 🔹 Renderiza novamente preservando o estado
       this.render(false);
     });
 
-    // Remover moeda
+    // Botão "Remover"
     html.find(".remove-currency").on("click", (ev) => {
       ev.preventDefault();
       const index = Number(ev.currentTarget.dataset.index);
+
+      this._collectCurrentValues(html);
       this.currencies.splice(index, 1);
       this.render(false);
     });
 
-    // Atualizar valores no array quando o usuário digitar
+    // Atualiza o array local conforme o usuário digita
     html.find("input").on("change", (ev) => {
       const row = ev.currentTarget.closest(".currency-row, .form-group");
       const index = Array.from(row.parentElement.children).indexOf(row);
@@ -57,7 +66,24 @@ export class ManageCurrenciesForm extends FormApplication {
     });
   }
 
+  /** 🔹 Função que coleta os valores atuais do formulário */
+  _collectCurrentValues(html) {
+    const rows = html.find(".currency-row, .form-group");
+    const updated = [];
+
+    rows.each((i, row) => {
+      const name = row.querySelector('[data-field="name"]')?.value || "Nova Moeda";
+      const icon = row.querySelector('[data-field="icon"]')?.value || "fa-coins";
+      const value = parseFloat(row.querySelector('[data-field="value"]')?.value) || 1;
+      updated.push({ name, icon, value });
+    });
+
+    this.currencies = updated;
+  }
+
   async _updateObject(_event, _formData) {
+    // Antes de salvar, garante que os últimos valores foram coletados
+    this._collectCurrentValues(this.element);
     await game.settings.set("5e-economy", "currencies", this.currencies);
     ui.notifications.info("Moedas salvas com sucesso!");
   }
@@ -68,7 +94,6 @@ export class ManageCurrenciesForm extends FormApplication {
 // ===================================================
 
 export function registerSettings() {
-  // Registro do objeto principal que guarda as moedas
   game.settings.register("5e-economy", "currencies", {
     name: "Moedas Personalizadas",
     scope: "world",
@@ -77,7 +102,6 @@ export function registerSettings() {
     default: [],
   });
 
-  // Adiciona o menu de configurações do Foundry
   game.settings.registerMenu("5e-economy", "manageCurrencies", {
     name: "Gerenciar Moedas",
     label: "Abrir Gerenciador",

@@ -1,4 +1,32 @@
-// ... (Hooks.once("init") e Hooks.once("ready") permanecem iguais) ...
+// scripts/5e-economy.js
+import { ManageCurrenciesForm } from "./settings.js"; 
+// Você deve remover a declaração da classe ManageCurrenciesForm 
+// que estava no final deste arquivo, pois ela está em settings.js
+
+Hooks.once("init", () => {
+  console.log("5e-economy | Initializing custom economy module");
+
+  game.settings.register("5e-economy", "extraCurrencies", {
+    name: "Moedas Extras",
+    scope: "world",
+    config: false,
+    type: Array,
+    default: []
+  });
+
+  game.settings.registerMenu("5e-economy", "manageCurrencies", {
+    name: "Gerenciar Moedas",
+    label: "Abrir Gerenciar Moedas",
+    hint: "Abra uma janela para criar e editar moedas personalizadas.",
+    icon: "fas fa-coins",
+    type: ManageCurrenciesForm, // Usa a classe importada
+    restricted: true
+  });
+});
+
+Hooks.once("ready", () => {
+  console.log("5e-economy | Ready");
+});
 
 // -------------------------------
 //  Formulário de Gerenciar Moedas
